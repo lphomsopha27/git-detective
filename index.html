@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Detective</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .font-pixel { font-family: 'Press Start 2P', monospace; }
+        .font-terminal, code, kbd { font-family: 'VT323', 'Fira Code', monospace; }
+        .font-code { font-family: 'Fira Code', monospace; font-variant-ligatures: none; }
+        canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+    </style>
+</head>
+<body class="h-screen w-screen bg-[#070b14] text-gray-100 antialiased overflow-hidden select-none">
+
+    <!-- ==================== PIXEL ARCADE HOME SCREEN ==================== -->
+    <div id="home-screen" class="h-full w-full relative flex flex-col justify-between p-3 sm:p-4 overflow-hidden bg-[#070b14]">
+        <canvas id="homeBgCanvas" width="960" height="540" class="absolute inset-0 w-full h-full object-cover pointer-events-none"></canvas>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(7,11,20,0.58)_0%,rgba(7,11,20,0.12)_70%)] pointer-events-none"></div>
+        <div class="crt-overlay absolute inset-0 pointer-events-none"></div>
+
+        <!-- TOP HUD BAR -->
+        <header class="relative z-30 w-full flex items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="openSubView('TITLE')" title="Main Menu" class="w-9 h-9 bg-[#11192c]/95 hover:bg-[#1b2847] border-2 border-[#38bdf8] text-[#38bdf8] font-pixel text-xs flex items-center justify-center shadow-[0_3px_0_#04070d] cursor-pointer">
+                    ≡
+                </button>
+                <button type="button" onclick="openSubView('TITLE')" class="px-3 py-2 bg-[#0b1120]/95 hover:bg-[#131d36] border border-[#283759] font-pixel text-[10px] sm:text-xs text-[#fb7185] tracking-wider shadow-[0_3px_0_#04070d] cursor-pointer">
+                    GIT DETECTIVE
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <div class="hidden md:block px-3 py-1.5 bg-[#0b1120]/90 border border-[#283759] font-terminal text-base text-sky-300 tracking-widest">
+                    ARCHIVE #104 // ONLINE
+                </div>
+                <div class="flex items-center bg-[#11192c]/95 border-2 border-[#33466e] shadow-[0_3px_0_#04070d]">
+                    <button type="button" onclick="toggleAudio()" id="home-sound-btn" title="Toggle Sound" class="w-9 h-9 flex items-center justify-center text-base text-sky-300 hover:bg-[#1d2b4d] hover:text-white border-r border-[#253454] cursor-pointer">
+                        🔇
+                    </button>
+                    <button type="button" onclick="openSubView('ACHIEVEMENTS')" title="Command Badges" class="w-9 h-9 flex items-center justify-center text-base text-[#facc15] hover:bg-[#1d2b4d] border-r border-[#253454] cursor-pointer">
+                        🏆
+                    </button>
+                    <button type="button" onclick="openSubView('LEVELS')" title="Select Case" class="w-9 h-9 flex items-center justify-center text-base text-emerald-400 hover:bg-[#1d2b4d] cursor-pointer">
+                        📁
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CENTER STAGE -->
+        <div class="relative z-20 flex-1 w-full flex items-center justify-center min-h-0 py-2">
+
+            <!-- MAIN TITLE MENU -->
+            <div id="title-menu-view" class="w-full max-w-lg flex flex-col items-center">
+                <div class="w-72 flex justify-between px-8">
+                    <div class="pixel-chain w-2.5 h-5 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                    <div class="pixel-chain w-2.5 h-5 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                </div>
+
+                <div class="pixel-frame w-full bg-[#0b1121]/95 border-4 border-[#38bdf8] shadow-[0_0_0_4px_#04070d,0_20px_50px_rgba(0,0,0,0.9)] px-6 pt-5 pb-6 flex flex-col items-center">
+                    <div class="pixel-title-plaque w-full bg-[#111a30] border-2 border-[#facc15] py-4 px-4 text-center shadow-[0_5px_0_#04070d]">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-2xl sm:text-3xl">🕵️</span>
+                            <h1 class="font-pixel text-lg sm:text-xl tracking-wider text-[#fde047] drop-shadow-[0_3px_0_#78350f]">
+                                GIT DETECTIVE
+                            </h1>
+                        </div>
+                        <p class="font-terminal text-lg text-[#7dd3fc] tracking-widest mt-1.5 uppercase">
+                            Version Control Mystery Game
+                        </p>
+                    </div>
+
+                    <div class="w-64 flex justify-between px-6">
+                        <div class="pixel-chain w-2.5 h-4 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                        <div class="pixel-chain w-2.5 h-4 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                    </div>
+
+                    <button type="button" onclick="openSubView('LEVELS')" class="pixel-btn pixel-btn-emerald w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-200 shadow-[0_5px_0_#042f1e] font-pixel text-base sm:text-lg tracking-widest text-white drop-shadow-[0_2px_0_#042f1e] cursor-pointer flex items-center justify-center gap-3">
+                        <span>▶</span>
+                        <span>LEVELS</span>
+                    </button>
+
+                    <div class="w-64 flex justify-between px-6">
+                        <div class="pixel-chain w-2.5 h-4 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                        <div class="pixel-chain w-2.5 h-4 bg-[#facc15] border-x-2 border-[#050811]"></div>
+                    </div>
+
+                    <button type="button" onclick="openSubView('ACHIEVEMENTS')" class="pixel-btn pixel-btn-amber w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 border-2 border-yellow-200 shadow-[0_5px_0_#451a03] font-pixel text-sm sm:text-base tracking-wider text-white drop-shadow-[0_2px_0_#451a03] cursor-pointer flex items-center justify-center gap-3">
+                        <span>🏆</span>
+                        <span>ACHIEVEMENTS</span>
+                    </button>
+
+                    <div class="w-full flex flex-wrap items-center justify-center gap-3 mt-5 font-terminal text-lg">
+                        <div class="pixel-chip px-3.5 py-1 bg-[#080d1a] border-2 border-[#fb7185] text-[#fda4af] flex items-center gap-1.5 shadow-[0_3px_0_#04070d]">
+                            <span>⭐</span>
+                            <span id="title-leads-stat">0/6 CLUES</span>
+                        </div>
+                        <div class="pixel-chip px-3.5 py-1 bg-[#080d1a] border-2 border-[#38bdf8] text-[#7dd3fc] flex items-center gap-1.5 shadow-[0_3px_0_#04070d]">
+                            <span>🏅</span>
+                            <span id="title-badges-stat">0/9 BADGES</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full mt-5 pt-4 border-t-2 border-[#1e2b47] flex justify-center">
+                        <button type="button" onclick="resetAllProgress()" class="pixel-btn-danger px-5 py-2 bg-rose-800 hover:bg-rose-700 border-2 border-rose-300 shadow-[0_4px_0_#3b0716] font-pixel text-[10px] sm:text-xs tracking-wider text-white cursor-pointer flex items-center gap-2">
+                            <span>🗑️</span>
+                            <span>RESET PROGRESS</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-VIEW 1: LEVELS SELECT -->
+            <div id="levels-subview" class="hidden w-full max-w-4xl pixel-frame bg-[#0b1121]/95 border-4 border-[#38bdf8] shadow-[0_0_0_4px_#04070d] p-5 sm:p-6 flex flex-col gap-4 max-h-full overflow-y-auto custom-scroll">
+                <div class="flex items-center justify-between gap-4 border-b-2 border-[#253454] pb-3 shrink-0">
+                    <h2 class="font-pixel text-sm sm:text-base text-[#fde047] drop-shadow-[0_2px_0_#000]">SELECT LEVEL</h2>
+                    <button type="button" onclick="openSubView('TITLE')" class="pixel-chip px-4 py-1.5 bg-[#16223d] hover:bg-[#1f3159] border-2 border-[#38bdf8] text-white hover:text-[#fde047] font-pixel text-[10px] sm:text-xs cursor-pointer">
+                        ← BACK
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Level 01 -->
+                    <div id="level1-card" onclick="handleLevelCardClick(1, event)" class="bg-[#10182b] border-2 border-[#facc15] p-5 flex flex-col justify-between shadow-[0_6px_0_#050811]">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="px-2.5 py-1 bg-[#facc15] text-[#090d16] font-pixel text-[10px]">LEVEL 01</span>
+                                <span id="level1-status-badge" class="px-2.5 py-0.5 bg-[#162847] text-sky-300 border border-sky-500/50 font-terminal text-base">
+                                    ● READY
+                                </span>
+                            </div>
+                            <h3 class="text-white font-pixel text-xs sm:text-sm leading-relaxed mb-2">CASE #104: METROPOLITAN BANK HEIST</h3>
+                            <p class="text-gray-300 font-terminal text-lg leading-snug mb-4">
+                                Isolate 4 evidence leads on separate branches, solve each code clue, commit your findings, and merge back to <code class="font-terminal text-emerald-400">main</code>.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 font-terminal text-base mb-4">
+                                <span class="px-2 py-0.5 bg-[#080c17] text-[#fde047] border border-[#2c3a57]">git status</span>
+                                <span class="px-2 py-0.5 bg-[#080c17] text-[#fde047] border border-[#2c3a57]">git branch</span>
+                                <span class="px-2 py-0.5 bg-[#080c17] text-[#fde047] border border-[#2c3a57]">git checkout</span>
+                                <span class="px-2 py-0.5 bg-[#080c17] text-[#fde047] border border-[#2c3a57]">git commit</span>
+                                <span class="px-2 py-0.5 bg-[#080c17] text-[#fde047] border border-[#2c3a57]">git merge</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t-2 border-[#1f2b42] space-y-3">
+                            <div class="flex justify-between text-lg font-terminal text-gray-300">
+                                <span>LEADS MERGED</span>
+                                <span id="level1-progress-text" class="text-[#fde047] font-bold">0 / 4</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="level1-play-btn" onclick="handleLevelPrimaryClick(1)" class="pixel-btn pixel-btn-emerald flex-1 py-3 px-3 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-200 font-pixel text-xs text-white cursor-pointer">
+                                    ▶ START
+                                </button>
+                                <button type="button" id="level1-board-btn" onclick="startLevel1(false)" title="Inspect Solved Corkboard" class="hidden pixel-chip py-2.5 px-2.5 bg-[#111a30] border-2 border-emerald-400 text-emerald-300 hover:text-white font-terminal text-base cursor-pointer">
+                                    🔍 BOARD
+                                </button>
+                                <button type="button" id="level1-replay-btn" onclick="startLevel1(true)" class="hidden pixel-chip py-2.5 px-2.5 bg-[#111a30] border-2 border-[#38bdf8] text-gray-200 hover:text-[#fde047] font-terminal text-base cursor-pointer">
+                                    ↻ REPLAY
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 02 -->
+                    <div id="level2-card" onclick="handleLevelCardClick(2, event)" class="bg-[#0c111f] border-2 border-[#25314a] p-5 flex flex-col justify-between opacity-75 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span id="level2-badge-num" class="px-2.5 py-1 bg-[#1e293b] text-gray-400 font-pixel text-[10px]">LEVEL 02</span>
+                                <span id="level2-status-badge" class="px-2.5 py-0.5 bg-[#161e2e] text-gray-400 border border-[#2e3b56] font-terminal text-base">
+                                    🔒 LOCKED
+                                </span>
+                            </div>
+                            <h3 id="level2-title" class="text-gray-300 font-pixel text-xs sm:text-sm leading-relaxed mb-2">CASE #208: MIDNIGHT GALLERY SABOTAGE</h3>
+                            <p id="level2-desc" class="text-gray-400 font-terminal text-lg leading-snug mb-4">
+                                Audit commit history, inspect tampered diffs, trace line-by-line fingerprints, and revert forged security edits.
+                            </p>
+                            <div id="level2-tags" class="flex flex-wrap gap-1.5 font-terminal text-base mb-4">
+                                <span class="px-2 py-0.5 bg-[#080b14] text-gray-500 border border-[#1f293d]">🔒 git log</span>
+                                <span class="px-2 py-0.5 bg-[#080b14] text-gray-500 border border-[#1f293d]">🔒 git show</span>
+                                <span class="px-2 py-0.5 bg-[#080b14] text-gray-500 border border-[#1f293d]">🔒 git blame</span>
+                                <span class="px-2 py-0.5 bg-[#080b14] text-gray-500 border border-[#1f293d]">🔒 git revert</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t-2 border-[#1a2234] space-y-3">
+                            <div class="flex justify-between text-lg font-terminal text-gray-400">
+                                <span>FORGERIES REVERTED</span>
+                                <span id="level2-progress-text" class="text-gray-400 font-bold">0 / 2</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="level2-play-btn" onclick="handleLevelPrimaryClick(2)" disabled class="flex-1 py-3 px-3 bg-[#161e2e] text-gray-500 font-pixel text-xs border-2 border-[#26324a] cursor-not-allowed">
+                                    🔒 SOLVE LEVEL 01 FIRST
+                                </button>
+                                <button type="button" id="level2-board-btn" onclick="startLevel2(false)" title="Inspect Solved Case" class="hidden pixel-chip py-2.5 px-2.5 bg-[#111a30] border-2 border-emerald-400 text-emerald-300 hover:text-white font-terminal text-base cursor-pointer">
+                                    🔍 CASE
+                                </button>
+                                <button type="button" id="level2-replay-btn" onclick="startLevel2(true)" class="hidden pixel-chip py-2.5 px-2.5 bg-[#111a30] border-2 border-[#38bdf8] text-gray-200 hover:text-[#fde047] font-terminal text-base cursor-pointer">
+                                    ↻ REPLAY
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-VIEW 2: ACHIEVEMENTS -->
+            <div id="achievements-subview" class="hidden w-full max-w-5xl pixel-frame bg-[#0b1121]/95 border-4 border-[#facc15] shadow-[0_0_0_4px_#04070d] p-5 sm:p-6 flex flex-col gap-4 max-h-full">
+                <div class="flex items-center justify-between gap-4 border-b-2 border-[#253454] pb-3 shrink-0">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <h2 class="font-pixel text-sm sm:text-base text-[#fde047] drop-shadow-[0_2px_0_#000]">ACHIEVEMENTS</h2>
+                        <span id="achievements-summary-pill" class="px-2.5 py-0.5 bg-[#080d1a] border border-[#facc15] text-[#fde047] font-terminal text-base">
+                            0 / 9 UNLOCKED
+                        </span>
+                    </div>
+                    <button type="button" onclick="openSubView('TITLE')" class="pixel-chip px-4 py-1.5 bg-[#16223d] hover:bg-[#1f3159] border-2 border-[#38bdf8] text-white hover:text-[#fde047] font-pixel text-[10px] sm:text-xs cursor-pointer">
+                        ← BACK
+                    </button>
+                </div>
+
+                <div id="achievements-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 overflow-y-auto custom-scroll pr-1">
+                    <!-- Populated by app.js -->
+                </div>
+            </div>
+
+        </div>
+
+        <div class="h-1 shrink-0"></div>
+    </div>
+
+    <!-- ==================== GAMEPLAY SCREEN ==================== -->
+    <div id="app-shell" class="hidden h-full w-full flex flex-col justify-between p-2 transition-all duration-200">
+        <!-- Top Mission Instructions Banner -->
+        <div id="instruction-banner" class="bg-[#0c1019] border-2 border-[#e1b12c] border-l-[6px] px-3.5 py-2 flex items-center justify-between z-20 shrink-0 mb-1 shadow-lg transition-colors duration-200 gap-3">
+            <div id="instruction-text" class="text-[#fde047] font-bold text-lg sm:text-xl tracking-wide font-terminal leading-snug">
+                🎯 Step 1: Type 'git status' to inspect the Corkboard.
+            </div>
+            <div class="flex items-center gap-2 shrink-0 font-terminal text-base">
+                <button type="button" id="win-banner-btn" onclick="openWinScreen(window.GameState.activeLevel)" class="hidden px-2.5 py-0.5 bg-[#facc15] hover:bg-[#fde047] text-[#090d16] border border-yellow-200 font-bold cursor-pointer animate-pulse">
+                    🏆 WIN SCREEN
+                </button>
+                <button type="button" onclick="openHintModal()" class="px-2.5 py-0.5 bg-[#1b2847] hover:bg-[#263a66] text-[#38bdf8] hover:text-white border border-[#38bdf8] font-bold cursor-pointer">
+                    💡 HINT
+                </button>
+                <button type="button" onclick="openHomeScreen('ACHIEVEMENTS')" class="px-2.5 py-0.5 bg-[#161d2c] hover:bg-[#1f293d] text-[#fde047] border border-[#2c3a57] cursor-pointer">
+                    🏆 <span id="game-badge-counter">0/9</span>
+                </button>
+                <button type="button" onclick="openHomeScreen('TITLE')" class="px-2.5 py-0.5 bg-[#161d2c] hover:bg-[#1f293d] text-gray-200 border border-[#2c3a57] cursor-pointer">
+                    🏠 MENU
+                </button>
+                <button type="button" onclick="toggleAudio()" id="sound-btn" class="px-2.5 py-0.5 bg-[#161d2c] hover:bg-[#1f293d] text-gray-300 hover:text-white border border-[#2c3a57] cursor-pointer">
+                    🔇 OFF
+                </button>
+            </div>
+        </div>
+
+        <!-- Main 16:9 Canvas Viewport -->
+        <main class="flex-1 flex items-center justify-center relative overflow-hidden min-h-0 my-1">
+            <div id="screen-wrapper" class="relative crt-overlay border-2 border-[#262e3e] shadow-2xl bg-black overflow-hidden h-full aspect-[16/9] max-w-full xl:max-w-[1360px]">
+                <canvas id="gameCanvas" width="960" height="540" class="w-full h-full block"></canvas>
+
+                <!-- Interactive Fill-in-the-Blank Code Overlay -->
+                <div id="code-puzzle-overlay" style="left: 41.25%; top: 28.89%; width: 54.583%; height: 41.48%;" class="hidden absolute z-15 bg-[#080b12] border border-[#262e3e] p-2.5 sm:p-3.5 flex flex-col justify-between">
+                    <div id="code-puzzle-lines" class="font-code text-[11px] sm:text-xs md:text-sm text-[#58a6ff] space-y-1 overflow-x-auto"></div>
+                    <div class="pt-1.5 border-t border-[#1c2536] flex items-center justify-between gap-2">
+                        <span id="code-puzzle-feedback" class="font-terminal text-sm sm:text-base text-gray-400 truncate">
+                            Fill in the blank from the clue on the left
+                        </span>
+                        <button type="button" id="code-verify-btn" onclick="verifyCodePuzzle()" class="px-2.5 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white font-pixel text-[9px] sm:text-[10px] border border-emerald-300 shrink-0 cursor-pointer">
+                            VERIFY
+                        </button>
+                    </div>
+                </div>
+
+                <div id="fade-overlay" class="absolute inset-0 bg-black opacity-0 pointer-events-none transition-opacity duration-300 z-20"></div>
+            </div>
+        </main>
+
+        <!-- Compact Bottom Terminal -->
+        <footer class="h-24 bg-[#11151f] border border-[#262e3e] p-1.5 flex flex-col justify-between z-20 shrink-0 font-terminal mt-1">
+            <div id="terminal-history" class="flex-1 overflow-y-auto space-y-0.5 text-sm text-gray-300 px-1.5 font-terminal"></div>
+
+            <div class="flex items-center gap-2 mt-1 pt-1 border-t border-[#1a2232] bg-[#0b0e14] px-2.5 py-0.5 border border-[#262e3e]">
+                <span class="text-[#2ea44f] font-bold text-sm shrink-0">detective@case-files:~$</span>
+                <input type="text" id="terminal-input" autocomplete="off" class="flex-1 bg-transparent text-[#58a6ff] border-none outline-none font-terminal text-sm" placeholder="Type a git command..." />
+                <button type="button" onclick="submitTerminalInput()" class="px-2.5 py-0.5 bg-[#182030] hover:bg-[#222e45] text-[#fde047] font-bold text-sm border border-[#262e3e] cursor-pointer">EXECUTE</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ==================== HIDDEN ADMIN CONTROLS MODAL ==================== -->
+    <div id="admin-modal-overlay" onclick="if (event.target === this) closeAdminModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+        <div class="helper-card-animate bg-[#101624] border-4 border-rose-500 shadow-[0_0_0_4px_#04070d,0_25px_70px_rgba(0,0,0,0.95)] max-w-lg w-full overflow-hidden">
+            <div class="bg-[#1b1526] border-b-2 border-rose-500/50 px-5 py-3.5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 bg-rose-500 text-white font-pixel text-[10px]">ADMIN</span>
+                    <span class="text-rose-300 font-terminal font-bold text-xl tracking-wide">BUREAU OVERRIDE TERMINAL</span>
+                </div>
+                <button type="button" onclick="closeAdminModal()" aria-label="Close Admin Controls" class="w-7 h-7 flex items-center justify-center bg-[#242e44] hover:bg-[#eb3b5a] text-gray-300 hover:text-white font-bold text-sm border border-[#364363] cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Password Lock Screen -->
+            <div id="admin-auth-section" class="p-5 space-y-4 font-terminal">
+                <p class="text-gray-200 text-lg leading-snug">
+                    Enter the Detective Bureau administrator password to unlock level-skip controls:
+                </p>
+
+                <div>
+                    <input type="password" id="admin-password-input" autocomplete="off" placeholder="Enter admin password..." class="w-full bg-[#080b12] border-2 border-rose-400 focus:border-[#fde047] text-white px-3.5 py-2.5 font-code text-base outline-none" />
+                    <div id="admin-password-error" class="hidden text-rose-400 text-base mt-1.5">
+                        ✕ Access denied — incorrect admin password.
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-sm text-gray-400">Press <kbd class="px-1.5 py-0.5 bg-[#1b2234] text-gray-200 border border-[#2c364f]">Enter</kbd> to authenticate</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeAdminModal()" class="px-3.5 py-1.5 bg-[#1b2234] hover:bg-[#26314a] text-gray-300 font-pixel text-[10px] border border-[#2c364f] cursor-pointer">
+                            CANCEL
+                        </button>
+                        <button type="button" onclick="verifyAdminPassword()" class="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-pixel text-[10px] border border-rose-300 cursor-pointer">
+                            UNLOCK 🔓
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unlocked Admin Controls -->
+            <div id="admin-controls-section" class="hidden p-5 space-y-3.5 font-terminal">
+                <div class="flex items-center justify-between bg-emerald-950/70 border border-emerald-500/50 px-3 py-1.5 text-emerald-300 text-base">
+                    <span>✓ ADMIN CLEARANCE VERIFIED</span>
+                    <span class="font-pixel text-[9px] text-emerald-400">ACTIVE</span>
+                </div>
+
+                <div class="space-y-2.5 pt-1">
+                    <button type="button" onclick="adminSkipToLevel2()" class="w-full p-3 bg-[#152238] hover:bg-[#1e3152] border-2 border-[#38bdf8] text-left flex items-center justify-between gap-3 cursor-pointer">
+                        <div>
+                            <div class="font-pixel text-[10px] sm:text-xs text-[#38bdf8]">⏭ SKIP LEVEL 01 → JUMP TO LEVEL 02</div>
+                            <div class="text-gray-300 text-base mt-0.5">Solves Case #104, unlocks Case #208, and starts Level 02 immediately.</div>
+                        </div>
+                        <span class="text-xl text-[#38bdf8]">▶</span>
+                    </button>
+
+                    <button type="button" onclick="adminCompleteLevel1Win()" class="w-full p-3 bg-[#152238] hover:bg-[#1e3152] border-2 border-[#facc15] text-left flex items-center justify-between gap-3 cursor-pointer">
+                        <div>
+                            <div class="font-pixel text-[10px] sm:text-xs text-[#fde047]">🏆 COMPLETE LEVEL 01 (WIN SCREEN)</div>
+                            <div class="text-gray-300 text-base mt-0.5">Completes Case #104 and opens its Win &amp; Certificate screen.</div>
+                        </div>
+                        <span class="text-xl text-[#fde047]">📜</span>
+                    </button>
+
+                    <button type="button" onclick="adminSkipLevel2Win()" class="w-full p-3 bg-[#152238] hover:bg-[#1e3152] border-2 border-emerald-400 text-left flex items-center justify-between gap-3 cursor-pointer">
+                        <div>
+                            <div class="font-pixel text-[10px] sm:text-xs text-emerald-400">⏭ SKIP LEVEL 02 (SOLVE CASE #208)</div>
+                            <div class="text-gray-300 text-base mt-0.5">Completes both cases and opens the Case #208 Win &amp; Certificate screen.</div>
+                        </div>
+                        <span class="text-xl text-emerald-400">✓</span>
+                    </button>
+
+                    <button type="button" onclick="adminUnlockAllBadges()" class="w-full p-2.5 bg-[#121a2b] hover:bg-[#1a253d] border border-[#2f4063] text-left flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="text-amber-300 text-lg">🏅 Unlock All 9 Git Command Badges</div>
+                        <span id="admin-badge-status" class="text-sm text-gray-400">UNLOCK</span>
+                    </button>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-[#1e2b47]">
+                    <button type="button" onclick="closeAdminModal()" class="px-4 py-1.5 bg-[#1b2234] hover:bg-[#26314a] text-gray-200 font-pixel text-[10px] border border-[#2c364f] cursor-pointer">
+                        CLOSE ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== YOU WIN & CERTIFICATE MODAL ==================== -->
+    <div id="win-screen-overlay" onclick="if (event.target === this) closeWinScreen()" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-5">
+        <div class="helper-card-animate bg-[#0b1121] border-4 border-[#facc15] shadow-[0_0_0_4px_#04070d,0_25px_80px_rgba(0,0,0,0.95)] max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden">
+
+            <!-- Top Header Bar -->
+            <div class="bg-[#121b30] border-b-2 border-[#2a3959] px-5 py-2.5 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 bg-[#facc15] text-[#090d16] font-pixel text-[10px]">CASE CLOSED</span>
+                    <span id="win-case-subtitle" class="text-[#7dd3fc] font-terminal font-bold text-xl tracking-wide">CASE #104: METROPOLITAN BANK HEIST</span>
+                </div>
+                <button type="button" onclick="closeWinScreen()" aria-label="Close Win Screen" class="w-8 h-8 flex items-center justify-center bg-[#1e293b] hover:bg-[#eb3b5a] text-gray-300 hover:text-white font-bold text-base border border-[#334155] cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Scrollable Body -->
+            <div class="p-4 sm:p-5 overflow-y-auto custom-scroll space-y-4">
+
+                <!-- Pixel Trophy + YOU WIN Banner + Case Verdict -->
+                <div class="bg-[#060911] border-2 border-[#263452] p-3 sm:p-4 flex flex-col md:flex-row items-center gap-4">
+                    <canvas id="winTrophyCanvas" width="320" height="168" class="w-64 sm:w-72 h-auto shrink-0"></canvas>
+
+                    <div class="flex-1 text-center md:text-left space-y-2 font-terminal">
+                        <div class="inline-block px-2.5 py-0.5 bg-emerald-950/90 border border-emerald-400 text-emerald-300 text-base font-bold">
+                            ✓ OFFICIAL DETECTIVE COMMENDATION
+                        </div>
+                        <h2 id="win-headline" class="font-pixel text-sm sm:text-base text-[#fde047] leading-relaxed">
+                            METROPOLITAN BANK HEIST SOLVED!
+                        </h2>
+                        <p id="win-verdict-text" class="text-gray-300 text-lg leading-snug">
+                            All 4 evidence leads were isolated on separate branches, forensically verified, committed, and merged cleanly into <code class="text-emerald-400">main</code>. Culprit identified: <strong class="text-rose-400">VAULT TECH</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Two-Column Grid: Learned Commands + Certificate Builder -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+                    <!-- Left Column: Git Commands Mastered -->
+                    <div class="lg:col-span-5 bg-[#10182b] border-2 border-[#38bdf8] p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-[#22304f] pb-2 mb-3">
+                                <span class="font-pixel text-[10px] sm:text-xs text-[#38bdf8]">💻 COMMANDS LEARNED</span>
+                                <span id="win-cmd-count-badge" class="font-terminal text-base text-[#fde047]">5 COMMANDS</span>
+                            </div>
+                            <div id="win-commands-list" class="space-y-2 max-h-60 overflow-y-auto custom-scroll pr-1">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-[#1e2b47] font-terminal text-sm text-gray-400">
+                            Every command above is stamped onto your downloadable certificate.
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Detective Certificate Personalizer & Live Preview -->
+                    <div class="lg:col-span-7 bg-[#10182b] border-2 border-[#facc15] p-4 flex flex-col justify-between space-y-3">
+                        <div class="flex items-center justify-between border-b border-[#22304f] pb-2">
+                            <span class="font-pixel text-[10px] sm:text-xs text-[#fde047]">📜 DETECTIVE CERTIFICATE</span>
+                            <span class="font-terminal text-base text-emerald-400">PNG READY</span>
+                        </div>
+
+                        <!-- Name Input -->
+                        <div class="space-y-1 font-terminal">
+                            <label for="cert-detective-name" class="block text-base text-gray-300">
+                                Type your name for the official certificate:
+                            </label>
+                            <input type="text" id="cert-detective-name" maxlength="32" autocomplete="off" oninput="updateCertificatePreview()" placeholder="Enter Detective Name..." class="w-full bg-[#070b14] border-2 border-[#38bdf8] focus:border-[#fde047] text-white px-3 py-2 font-terminal text-xl outline-none" />
+                        </div>
+
+                        <!-- Live Mini Certificate Preview Card -->
+                        <div class="bg-[#080d19] border-2 border-[#e1b12c] p-3.5 relative shadow-inner font-terminal">
+                            <div class="border border-[#e1b12c]/40 p-3 text-center space-y-1.5">
+                                <div class="text-xs tracking-widest text-[#38bdf8] uppercase">Git Detective Bureau • Official Record</div>
+                                <div class="font-pixel text-[10px] sm:text-xs text-[#fde047]">CERTIFICATE OF COMPLETION</div>
+                                <div class="text-sm text-gray-400 pt-1">AWARDED TO</div>
+                                <div id="cert-preview-name" class="text-2xl sm:text-3xl font-bold text-white border-b border-[#facc15]/60 inline-block px-6 pb-0.5">
+                                    Junior Git Detective
+                                </div>
+                                <div id="cert-preview-case" class="text-base text-emerald-300 pt-1">
+                                    For solving Case #104: Metropolitan Bank Heist
+                                </div>
+                                <div id="cert-preview-meta" class="text-xs text-gray-400 pt-1 flex items-center justify-between">
+                                    <span>RANK: CODE DETECTIVE</span>
+                                    <span id="cert-preview-date">ISSUED TODAY</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Download Action -->
+                        <div class="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                            <button type="button" onclick="downloadCertificate()" class="pixel-btn pixel-btn-emerald w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-200 font-pixel text-[10px] sm:text-xs text-white cursor-pointer flex items-center justify-center gap-2">
+                                <span>⬇</span>
+                                <span>DOWNLOAD CERTIFICATE (.PNG)</span>
+                            </button>
+                        </div>
+                        <div id="cert-download-toast" class="hidden text-center font-terminal text-base text-emerald-400">
+                            ✓ Certificate downloaded! Check your browser's Downloads folder.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="bg-[#121b30] border-t-2 border-[#2a3959] px-5 py-3 flex flex-wrap items-center justify-between gap-2.5 shrink-0 font-terminal">
+                <button type="button" onclick="closeWinScreen(); openHomeScreen('LEVELS');" class="px-3.5 py-1.5 bg-[#1b2742] hover:bg-[#26375c] text-gray-200 border border-[#3b4f7a] text-lg cursor-pointer">
+                    🏠 LEVEL SELECT
+                </button>
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="inspectSolvedLevelFromWin()" class="px-3.5 py-1.5 bg-[#1b2742] hover:bg-[#26375c] text-[#38bdf8] border border-[#38bdf8] text-lg cursor-pointer">
+                        🔍 INSPECT BOARD
+                    </button>
+                    <button type="button" id="win-next-level-btn" onclick="goToNextLevelFromWin()" class="px-4 py-1.5 bg-[#facc15] hover:bg-[#fde047] text-[#090d16] font-pixel text-[10px] sm:text-xs border-2 border-yellow-100 cursor-pointer">
+                        NEXT CASE: LEVEL 02 ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== COMMIT MESSAGE POP-UP ==================== -->
+    <div id="commit-modal-overlay" onclick="if (event.target === this) closeCommitModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+        <div class="helper-card-animate bg-[#131824] border-2 border-emerald-400 shadow-[0_25px_70px_rgba(0,0,0,0.95)] max-w-lg w-full overflow-hidden">
+            <div class="bg-[#1b2234] border-b-2 border-[#2c364f] px-5 py-3.5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 bg-emerald-400 text-[#0b0e14] font-pixel text-[10px]">GIT COMMIT</span>
+                    <span id="commit-branch-label" class="text-emerald-300 font-terminal font-bold text-xl">branch: atTheScene</span>
+                </div>
+                <button type="button" onclick="closeCommitModal()" aria-label="Close commit modal" class="w-7 h-7 flex items-center justify-center bg-[#242e44] hover:bg-[#eb3b5a] text-gray-300 hover:text-white font-bold text-sm border border-[#364363] cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 font-terminal">
+                <p class="text-gray-200 text-lg leading-snug">
+                    Enter a short detective commit message summarizing what you uncovered in this lead:
+                </p>
+
+                <div>
+                    <input type="text" id="commit-msg-input" autocomplete="off" placeholder="e.g., Flagged Vault Tech at scene" class="w-full bg-[#080b12] border-2 border-[#38bdf8] focus:border-[#fde047] text-white px-3.5 py-2.5 font-terminal text-xl outline-none" />
+                    <div id="commit-modal-error" class="hidden text-rose-400 text-base mt-1.5">
+                        Please enter a brief description of your findings before committing.
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-sm text-gray-400">Press <kbd class="px-1.5 py-0.5 bg-[#1b2234] text-gray-200 border border-[#2c364f]">Enter</kbd> to seal commit</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeCommitModal()" class="px-3.5 py-1.5 bg-[#1b2234] hover:bg-[#26314a] text-gray-300 font-pixel text-[10px] border border-[#2c364f] cursor-pointer">
+                            CANCEL
+                        </button>
+                        <button type="button" onclick="submitCommitMessage()" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-[#0b0e14] font-pixel text-[10px] cursor-pointer">
+                            COMMIT ✓
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DETECTIVE HINT POP-UP ==================== -->
+    <div id="hint-modal-overlay" onclick="if (event.target === this) closeHintModal()" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+        <div class="helper-card-animate bg-[#131824] border-2 border-[#38bdf8] shadow-[0_25px_70px_rgba(0,0,0,0.95)] max-w-lg w-full overflow-hidden">
+            <div class="bg-[#1b2234] border-b-2 border-[#2c364f] px-5 py-3.5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 bg-[#38bdf8] text-[#0b0e14] font-pixel text-[10px]">CASE HINT</span>
+                    <span id="hint-stage-label" class="text-sky-300 font-terminal font-bold text-xl">CURRENT OBJECTIVE</span>
+                </div>
+                <button type="button" onclick="closeHintModal()" aria-label="Close hint modal" class="w-7 h-7 flex items-center justify-center bg-[#242e44] hover:bg-[#eb3b5a] text-gray-300 hover:text-white font-bold text-sm border border-[#364363] cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 font-terminal">
+                <div class="bg-[#0d111a] border-l-4 border-[#38bdf8] p-4">
+                    <div class="text-sm uppercase tracking-wider text-sky-400 font-bold mb-1">💡 Next Step</div>
+                    <p id="hint-body-text" class="text-gray-200 text-lg leading-snug"></p>
+                </div>
+
+                <div id="hint-cmd-box" class="bg-[#080b12] border border-[#262e3e] px-3.5 py-2.5 text-[#fde047] font-code text-sm"></div>
+
+                <div class="flex justify-end pt-1">
+                    <button type="button" onclick="closeHintModal()" class="px-4 py-1.5 bg-[#38bdf8] hover:bg-sky-300 text-[#0b0e14] font-pixel text-xs cursor-pointer">
+                        GOT IT ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FIELD MANUAL POP-UP ==================== -->
+    <div id="helper-card-overlay" onclick="if (event.target === this) closeHelperCard()" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+        <div class="helper-card-animate bg-[#131824] border-2 border-[#facc15] shadow-[0_25px_70px_rgba(0,0,0,0.95)] max-w-xl w-full overflow-hidden">
+            <div class="bg-[#1b2234] border-b-2 border-[#2c364f] px-5 py-3.5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 bg-[#facc15] text-[#0b0e14] font-pixel text-[10px]">FIELD MANUAL</span>
+                    <span id="helper-cmd-title" class="text-[#fde047] font-terminal font-bold text-xl">git status</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span id="helper-cmd-tag" class="text-sm font-terminal text-[#58a6ff] bg-[#101622] px-2 py-0.5 border border-[#262e3e]">INSPECT THE BOARD</span>
+                    <button type="button" onclick="closeHelperCard()" aria-label="Close helper card" class="w-7 h-7 flex items-center justify-center bg-[#242e44] hover:bg-[#eb3b5a] text-gray-300 hover:text-white font-bold text-sm border border-[#364363] transition-colors cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-5 space-y-4 font-terminal">
+                <div class="bg-[#0d111a] border-l-4 border-[#facc15] p-4">
+                    <div class="text-sm uppercase tracking-wider text-[#fde047] font-bold mb-1">🕵️ Detective Metaphor</div>
+                    <p id="helper-metaphor-text" class="text-gray-200 text-lg leading-snug"></p>
+                </div>
+
+                <div class="bg-[#0d111a] border-l-4 border-[#58a6ff] p-4">
+                    <div class="text-sm uppercase tracking-wider text-[#58a6ff] font-bold mb-1">💻 What It Does in Git</div>
+                    <p id="helper-git-text" class="text-gray-300 text-lg leading-snug"></p>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-sm text-gray-400">Press <kbd class="px-1.5 py-0.5 bg-[#1b2234] text-gray-200 border border-[#2c364f]">Esc</kbd> or click <strong class="text-gray-200">✕</strong> to close</span>
+                    <button type="button" onclick="closeHelperCard()" class="px-4 py-1.5 bg-[#facc15] hover:bg-[#fde047] text-[#0b0e14] font-pixel text-xs transition-colors cursor-pointer">
+                        GOT IT ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
